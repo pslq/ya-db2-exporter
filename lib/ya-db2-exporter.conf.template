@@ -1,0 +1,12 @@
+#
+[DB]
+# Examples at https://github.com/ibmdb/python-ibmdb
+CONN = DATABASE=testdb;HOSTNAME=10.88.0.5;PORT=50000;PROTOCOL=TCPIP;UID=root;PWD=passw0rd;
+
+[LOG]
+# Valid entries: INFO / DEBUG
+log_level = DEBUG
+# Log file or empty, if empty it will go to syslog
+log_file =
+# Log commands executed at the server into syslog or logfile
+log_commands = True
