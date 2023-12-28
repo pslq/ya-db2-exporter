@@ -105,6 +105,14 @@ class Interface:
       self.logger.post_msg("%s : %s"%(e,ibm_db.stmt_errormsg()))
     return(ret)
 
+  def fetch_all(self,result) -> list:
+    ret = []
+    row = self.fetch(result)
+    while row :
+      ret.append(row)
+      row = self.fetch(result)
+    return(ret)
+
   def fetch(self,result) :
     ret = None
     try :
