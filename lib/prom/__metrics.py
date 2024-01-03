@@ -1,4 +1,5 @@
 from prometheus_client import Gauge, Counter, Summary
+
 from utils import singleton
 from typing import Any
 
@@ -12,7 +13,11 @@ class Metrics :
 
     self.__metric_desc = {
         'uptime' : (Gauge('database_uptime_seconds', 'Instance uptime in seconds'), self.__db.uptime()),
-        'deadlocks' : (Gauge('database_deadlocks_total', 'Concurrent of deadlocks running'), self.__db.deadlocks())
+
+        'deadlocks' : (Gauge('database_deadlocks_total', 'Concurrent of deadlocks running'), self.__lock_stuff('deadlocks')),
+        'lock_waits' : (Gauge('database_lock_waits_total', 'Amount of lock waits'), self.__lock_stuff('lock_waits')),
+        'statement_execution_time' : (Gauge('database_statement_execution_time_seconds', 'Amount of time takes to a statement to run'), self.__lock_stuff('statement_execution_time')),
+        'time_waited_on_locks' : (Gauge('database_time_waited_on_locks_seconds', 'Time spent waiting on locks'), self.__lock_stuff('time_waited_on_locks')),
                           }
     self.__metric_function = {}
 
@@ -26,6 +31,11 @@ class Metrics :
     for k,v in cur_reading.items() :
       self.__metrics['online_users'].labels(database=k).set(v)
     return(self.__metrics['online_users'])
+
+  # Just a helper around my lazy deadlock db2 function
+  # Something for my future me fix
+  def __lock_stuff(self,name) :
+    return(self.__db.deadlocks()[( 'deadlocks', 'lock_waits', 'statement_execution_time', 'time_waited_on_locks' ).index(name)])
 
   def standard_metric(self,name) -> Any :
     ret = None

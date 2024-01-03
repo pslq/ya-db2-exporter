@@ -31,11 +31,16 @@ class Main:
     return(None)
 
   def server(self) -> int:
+    ret = 0
     port = int(self.config['HTTP']['port'].strip())
     interval = int(self.config['PROM']['interval'].strip())
     self.logger.post_msg("Starting Exporter at port %d, with a collection interval of %d"%(port,interval), on_screen=True)
-    start_http_server(port)
-    while 1 :
-      self.run_exporters()
-      time.sleep(interval)
-    return(0)
+    try :
+      start_http_server(port)
+      while 1 :
+        self.run_exporters()
+        time.sleep(interval)
+    except Exception as e :
+      self.logger.post_msg("Error: %s"%e, on_screen=True)
+      ret = -1
+    return(ret)

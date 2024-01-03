@@ -1,6 +1,7 @@
 import ibm_db, os.path
 from utils import LoadSQL, singleton
 from datetime import datetime
+from functools import lru_cache
 
 '''
 some queries from: https://github.com/glinuz/db2_exporter/tree/master
@@ -79,11 +80,21 @@ class Interface:
       self.logger.post_msg(e)
     return(ret)
 
-  def deadlocks(self) -> int :
-    ret = 0
+  @lru_cache(maxsize=4)
+  def deadlocks(self) -> tuple :
+    '''
+    Return a tuple with :
+      - amount of deadlocks
+      - amount of lock_waits
+      - Statement execution time
+      - time waited on locks
+    '''
+    ret = (0,0,0,0)
     try :
       result = self.exec(LoadSQL(os.path.join(self.sql_dir,'deadlocks.sql')))
-      ret = int(self.fetch(result)[0])
+      row = self.fetch(result)
+      ret = ( int(row[0]), int(row[1]), int(row[2]), int(row[3]) )
+
     except Exception as e :
       self.logger.post_msg(e)
     return(ret)

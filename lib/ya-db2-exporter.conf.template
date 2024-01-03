@@ -15,8 +15,14 @@ log_commands = True
 port = 9180
 
 [PROM]
-exporters =  online_users,
+exporters = online_users, uptime, deadlocks, lock_waits, statement_execution_time, time_waited_on_locks
+interval = 60
 
 # Available exporters:
 # online_users = amount of online users per DB
+# uptime = databnase uptime in seconds
+# deadlocks
+# lock_waits
+# statement_execution_time
+# time_waited_on_locks
 
