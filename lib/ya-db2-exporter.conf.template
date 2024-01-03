@@ -10,3 +10,13 @@ log_level = DEBUG
 log_file =
 # Log commands executed at the server into syslog or logfile
 log_commands = True
+
+[HTTP]
+port = 9180
+
+[PROM]
+exporters =  online_users,
+
+# Available exporters:
+# online_users = amount of online users per DB
+

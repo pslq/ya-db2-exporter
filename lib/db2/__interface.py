@@ -1,5 +1,6 @@
 import ibm_db, os.path
 from utils import LoadSQL, singleton
+from datetime import datetime
 
 '''
 some queries from: https://github.com/glinuz/db2_exporter/tree/master
@@ -65,14 +66,24 @@ class Interface:
       self.logger.post_msg(e)
     return(ret)
 
-  def uptime(self) :
+  def uptime(self) -> int:
     '''
-    Return datetime.datetime() since the server is up
+    Return seconds since the server is up
     '''
-    ret = None
+    ret = 0
     try :
       result = self.exec(LoadSQL(os.path.join(self.sql_dir,'uptime.sql')))
-      ret = self.fetch(result)[0]
+      db_uptime = datetime.now() - self.fetch(result)[0]
+      ret = int(db_uptime.seconds)
+    except Exception as e :
+      self.logger.post_msg(e)
+    return(ret)
+
+  def deadlocks(self) -> int :
+    ret = 0
+    try :
+      result = self.exec(LoadSQL(os.path.join(self.sql_dir,'deadlocks.sql')))
+      ret = int(self.fetch(result)[0])
     except Exception as e :
       self.logger.post_msg(e)
     return(ret)
@@ -120,3 +131,18 @@ class Interface:
     except Exception as e :
       self.logger.post_msg(e)
     return(ret)
+
+
+'''
+  bufferpool_hit.sql
+bufferpool_size.sql
+get_memory_pool.sql
+get_mem_usage.sql
+get_version.sql
+health_db_hi.sql
+lock_time.sql
+lock_waits.sql
+log_utilization.sql
+system_resources.sql
+tblspace_size.sql
+'''
