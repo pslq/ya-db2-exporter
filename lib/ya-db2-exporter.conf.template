@@ -1,28 +1,33 @@
 #
 [DB]
 # Examples at https://github.com/ibmdb/python-ibmdb
-CONN = DATABASE=testdb;HOSTNAME=10.88.0.5;PORT=50000;PROTOCOL=TCPIP;UID=root;PWD=passw0rd;
+CONN = DATABASE=testdb;HOSTNAME=10.88.0.5;PORT=50000;PROTOCOL=TCPIP;UID=db2inst1;PWD=password;
 
 [LOG]
 # Valid entries: INFO / DEBUG
-log_level = DEBUG
+log_level = INFO
 # Log file or empty, if empty it will go to syslog
 log_file =
 # Log commands executed at the server into syslog or logfile
 log_commands = True
 
+
 [HTTP]
 port = 9180
+# If will use https or not
+use_https = False
+# Check https://prometheus.github.io/client_python/exporting/http/
+certfile = "/tmp/test.crt"
+keyfile = "/tmp/test.key"
+client_auth_required = False
 
 [PROM]
-exporters = online_users, uptime, deadlocks, lock_waits, statement_execution_time, time_waited_on_locks
+exporters = online_users, event_monitors, mon_get_instance, snapdb
 interval = 60
+log_collections = True
 
 # Available exporters:
-# online_users = amount of online users per DB
-# uptime = databnase uptime in seconds
-# deadlocks
-# lock_waits
-# statement_execution_time
-# time_waited_on_locks
-
+# online_users : List of online users per database
+# event_monitors : events configured to be triggered from the database
+# mon_get_instance : basic instance data ( from db2 function table mon_get_instance )
+# snapdb : data from snapdb internal view
