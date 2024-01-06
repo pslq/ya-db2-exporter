@@ -1,7 +1,6 @@
 import ibm_db, os.path
 from utils import LoadSQL, singleton
 from datetime import datetime
-from functools import lru_cache
 
 '''
 some queries from: https://github.com/glinuz/db2_exporter/tree/master
@@ -67,21 +66,23 @@ class Interface:
       self.logger.post_msg(e)
     return(ret)
 
-  def uptime(self) -> int:
+  def get_mon_get_instance(self) -> tuple:
     '''
-    Return seconds since the server is up
+    Return a tuple with ( <uptime in seconds>, TIMEZONEOFFSET, CON_LOCAL_DBASES, TOTAL_CONNECTIONS, AGENTS_REGISTERED, AGENTS_REGISTERED_TOP,
+  IDLE_AGENTS, AGENTS_FROM_POOL, AGENTS_CREATED_EMPTY_POOL, NUM_COORD_AGENTS, COORD_AGENTS_TOP, AGENTS_STOLEN,
+  GW_TOTAL_CONS, GW_CUR_CONS, GW_CONS_WAIT_HOST, GW_CONS_WAIT_CLIENT, NUM_GW_CONN_SWITCHES )
     '''
-    ret = 0
+    ret = ( 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 )
     try :
-      result = self.exec(LoadSQL(os.path.join(self.sql_dir,'uptime.sql')))
-      db_uptime = datetime.now() - self.fetch(result)[0]
-      ret = int(db_uptime.seconds)
+      result = self.exec(LoadSQL(os.path.join(self.sql_dir,'mon_get_instance.sql')))
+      row = self.fetch(result)
+      db_uptime = datetime.now() - row[0]
+      ret = (int(db_uptime.seconds),) + row[1:]
     except Exception as e :
       self.logger.post_msg(e)
     return(ret)
 
-  @lru_cache(maxsize=4)
-  def deadlocks(self) -> tuple :
+  def snapdb(self) -> tuple :
     '''
     Return a tuple with :
       - amount of deadlocks
@@ -91,10 +92,28 @@ class Interface:
     '''
     ret = (0,0,0,0)
     try :
-      result = self.exec(LoadSQL(os.path.join(self.sql_dir,'deadlocks.sql')))
+      result = self.exec(LoadSQL(os.path.join(self.sql_dir,'snapdb.sql')))
       row = self.fetch(result)
       ret = ( int(row[0]), int(row[1]), int(row[2]), int(row[3]) )
 
+    except Exception as e :
+      self.logger.post_msg(e)
+    return(ret)
+
+  def event_monitors(self) -> dict :
+    '''
+    Return a dict with tuples
+    Ref.: https://www.ibm.com/docs/en/db2oc?topic=views-syscateventmonitors
+      { 'EVMONNAME' : ('EVENT_TYPE', 'OWNER', 'AUTOSTART', EVMON_ACTIVATES)}
+
+    '''
+    ret = { }
+    try :
+      result = self.exec(LoadSQL(os.path.join(self.sql_dir,'event_monitors.sql')))
+      row = self.fetch(result)
+      while row :
+        ret[row[0].strip()] = ( row[1],row[2],row[3],row[4] )
+        row = self.fetch(result)
     except Exception as e :
       self.logger.post_msg(e)
     return(ret)
@@ -142,18 +161,3 @@ class Interface:
     except Exception as e :
       self.logger.post_msg(e)
     return(ret)
-
-
-'''
-  bufferpool_hit.sql
-bufferpool_size.sql
-get_memory_pool.sql
-get_mem_usage.sql
-get_version.sql
-health_db_hi.sql
-lock_time.sql
-lock_waits.sql
-log_utilization.sql
-system_resources.sql
-tblspace_size.sql
-'''
